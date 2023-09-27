@@ -7,9 +7,23 @@ import "./MiTabla.css";
 
 export function MiTabla({ selectedDate }) {
   const client = useApolloClient();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dataUsers, setDataUsers] = useState();
+  const [groupedData, setGroupedData] = useState([]);
+
+  let Test = [
+    {
+      Lunes: "0",
+      Martes: "0",
+      Miercoles: "0",
+      Jueves: "0",
+      Viernes: "0",
+      Sabado: "0",
+      Domingo: "0",
+    },
+  ];
 
   useEffect(() => {
     if (selectedDate) {
@@ -28,9 +42,7 @@ export function MiTabla({ selectedDate }) {
                 name: "prueba",
               },
             });
-
-            const { data } = response;
-            console.log(JSON.stringify(data, null, 2));
+            setDataUsers(response);
 
             setLoading(false);
           } catch (error) {
@@ -64,9 +76,8 @@ export function MiTabla({ selectedDate }) {
             },
           })
           .then((response) => {
-            const { data } = response;
-            const orders = data.allOrders.edges.map((edge) => edge.node);
-            setData(orders);
+            setData(response);
+
             setLoading(false);
           })
           .catch((error) => {
@@ -78,105 +89,75 @@ export function MiTabla({ selectedDate }) {
     }
   }, [selectedDate, client]);
 
-  const daysOfWeek = [
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-    "Domingo",
-  ];
-
   const columns = [
-    { field: "date", header: "Fecha" },
-    ...daysOfWeek.map((day) => ({
-      field: day.toLowerCase(),
-      header: day,
-    })),
+    { field: "Lunes", header: "Lunes" },
+    { field: "Martes", header: "Martes" },
+    { field: "Miercoles", header: "Miercoles" },
+    { field: "Jueves", header: "Jueves" },
+    { field: "Viernes", header: "Viernes" },
+    { field: "Sabado", header: "Sabado" },
+    { field: "Domingo", header: "Domingo" },
   ];
-
-  let groupedData = {};
 
   const countOccurrences = (arr, dateVal, userVal) => {
-    return arr.reduce(
-      (count, item) =>
-        new Date(item.startDate).toISOString().split("T")[0] === dateVal &&
-        item.userByIdUser.name === userVal
-          ? count + 1
-          : count,
-      0
-    );
+    return arr.reduce((count, item) => {
+      return item.node.startDate === dateVal &&
+        item.node.userByIdUser.name === userVal
+        ? count + 1
+        : count;
+    }, 0);
   };
 
   useEffect(() => {
-    if (selectedDate && data.length > 0) {
+    if (selectedDate && data && dataUsers) {
       let weekDay = [];
-      let userCount = {};
-
-      for (let i = 0; i < 7; i++) {
-        selectedDate.weekStartDate.setDate(
-          selectedDate.weekStartDate.getDate() + 1
-        );
-        const formattedDate = selectedDate.weekStartDate
-          .toISOString()
-          .split("T")[0];
-
-        data.forEach((item) => {
-          const userName = item.userByIdUser.name;
-
-          userCount[userName] = countOccurrences(data, formattedDate, userName);
-          weekDay.push({
-            i: userCount[userName],
-          });
-        });
-
+      let userCount = [];
+      dataUsers.data.allUsers.nodes.forEach((user) => {
+        userCount = [];
+        for (let i = 0; i < 7; i++) {
+          selectedDate.weekStartDate.setDate(
+            selectedDate.weekStartDate.getDate() + 1
+          );
+          const formattedDate = selectedDate.weekStartDate
+            .toISOString()
+            .split("T")[0];
+          userCount.push(
+            countOccurrences(
+              data.data.allOrders.edges,
+              formattedDate,
+              user.name
+            )
+          );
+        }
+        console.log(user.name);
         console.log(userCount);
-      }
+        weekDay.push({
+          Lunes: user.name + " : " + userCount[0],
+          Martes: user.name + " : " + userCount[1],
+          Miercoles: user.name + " : " + userCount[2],
+          Jueves: user.name + " : " + userCount[3],
+          Viernes: user.name + " : " + userCount[4],
+          Sabado: user.name + " : " + userCount[5],
+          Domingo: user.name + " : " + userCount[6],
+        });
+      });
+      setGroupedData(weekDay);
+
+      console.log(weekDay);
     }
-  }, [data]);
+  }, [data, dataUsers, selectedDate]);
 
   return (
     <div className="card">
-      {loading ? (
-        <p>Cargando...</p>
-      ) : error ? (
-        <p>Error: {error.message}</p>
-      ) : (
-        <DataTable
-          value={Object.values(groupedData)}
-          showGridlines
-          tableStyle={{ minWidth: "50rem" }}
-        >
-          {columns.map((column) => (
-            <Column
-              key={column.field}
-              field={column.field}
-              header={column.header}
-              body={(rowData) => {
-                if (column.field === "date") {
-                  return <span>{rowData.date}</span>;
-                } else {
-                  const dayData = rowData[column.field];
-                  if (dayData && dayData.length > 0) {
-                    return (
-                      <ul>
-                        {dayData.map((entry) => (
-                          <li key={entry.id}>
-                            ID: {entry.id}, Usuario: {entry.userName}
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  } else {
-                    return <span>Sin solicitudes</span>;
-                  }
-                }
-              }}
-            />
-          ))}
-        </DataTable>
-      )}
+      <DataTable
+        value={groupedData}
+        showGridlines
+        tableStyle={{ minWidth: "50rem" }}
+      >
+        {columns.map((col) => (
+          <Column key={col.field} field={col.field} header={col.header} />
+        ))}
+      </DataTable>
     </div>
   );
 }
