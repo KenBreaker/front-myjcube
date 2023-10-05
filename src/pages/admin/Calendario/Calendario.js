@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { addLocale } from "primereact/api";
 import { Calendar } from "primereact/calendar";
+import "./Calendario.css";
 
 export function Calendario({ actualizarEstado }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -71,12 +72,13 @@ export function Calendario({ actualizarEstado }) {
   };
 
   return (
-    <div className="card flex justify-content-center">
+    <div className="calendario flex justify-content-center">
       <Calendar
         value={selectedDate}
         onChange={(e) => handleDateChange(e)}
         locale="es"
         showIcon
+        showButtonBar
       />
     </div>
   );
