@@ -1,0 +1,21 @@
+/* MiTabla.css */
+
+.mitabla {
+    margin-top: 20px;
+    margin-left: 20px;
+    text-align: center !important;
+  }
+  .mitabla .p-datatable .p-datatable-tbody td {
+    text-align: center;
+  }
+  
+  .mitabla .p-datatable .p-datatable-tbody tr {
+    order: 1;
+  }
+  .mitabla .tag-hover {
+    border-radius: 2px;
+  }
+  .mitabla .tag-hover:hover {
+    background-color: #f5f5f5;
+  }
+  

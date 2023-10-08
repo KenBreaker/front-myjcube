@@ -1,0 +1,34 @@
+'use client';
+import { LayoutProvider } from '../layout/context/layoutcontext';
+import { PrimeReactProvider } from 'primereact/api';
+import 'primereact/resources/primereact.css';
+import 'primeflex/primeflex.css';
+import 'primeicons/primeicons.css';
+import '../styles/layout/layout.scss';
+import '../styles/demo/Demos.scss';
+import { ApolloClient, InMemoryCache, ApolloProvider,  } from '@apollo/client';
+interface RootLayoutProps {
+    children: React.ReactNode;
+}
+
+const client = new ApolloClient({
+    uri: 'http://170.239.188.15:3000/graphql', 
+    cache: new InMemoryCache(),
+  });
+
+export default function RootLayout({ children }: RootLayoutProps) {
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <link id="theme-css" href={`/themes/lara-dark-indigo/theme.css`} rel="stylesheet"></link>
+            </head>
+            <body>
+                <PrimeReactProvider>
+                    <ApolloProvider client={client}>
+                        <LayoutProvider>{children}</LayoutProvider>
+                    </ApolloProvider>
+                </PrimeReactProvider>
+            </body>
+        </html>
+    );
+}
